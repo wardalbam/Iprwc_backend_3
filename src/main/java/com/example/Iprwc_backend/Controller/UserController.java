@@ -1,57 +1,135 @@
 package com.example.Iprwc_backend.Controller;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
+
+import com.example.Iprwc_backend.DAO.AddressRepo;
+import com.example.Iprwc_backend.DAO.RoleRepo;
+import com.example.Iprwc_backend.DAO.UserRepo;
+import com.example.Iprwc_backend.DTO.UserDetailsDTO;
+import com.example.Iprwc_backend.Model.Address;
 import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserServiceImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-
-import org.hibernate.annotations.Any;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.net.URI;
+import java.security.Principal;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static java.util.Arrays.stream;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api")
 public class UserController {
 
     private final UserServiceImpl userService;
-    public UserController(UserServiceImpl userService) {
+    private final AddressRepo addressRepo;
+    private final UserRepo userRepo;
+    @Autowired
+    RoleRepo roleRepo;
+    
+    public UserController(UserServiceImpl userService, AddressRepo addressRepo, UserRepo userRepo) {
         this.userService = userService;
+        this.addressRepo = addressRepo;
+        this.userRepo = userRepo;
+    }
+    // delete user by id
+    @DeleteMapping("user/delete/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable("id") Long id){
+        try{
+            // if user dont have role admin 
+            if( !userRepo.getById(id).getRoles().contains(roleRepo.findByName("ROLE_ADMIN")) ){
+                userService.removeUserById(id);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>("Admin cannot be removed!",HttpStatus.FORBIDDEN);
+            }
+        }catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @GetMapping("/users")
-    public List<User> getUsers(){
-        return userService.getUsers();
-        // try {
-        //     return new ResponseEntity(userService.getUsers(), HttpStatus.OK);
-        // } catch (Exception e) {
-        //     return new ResponseEntity("cant get users!", HttpStatus.FORBIDDEN);
-        // }
-        
+    @GetMapping("user/details")
+    public ResponseEntity<UserDetailsDTO> getEmail( HttpServletRequest request ){
+        try{
+            Principal principal = request.getUserPrincipal();
+            User user = userService.getUser(principal.getName());
+            Address userAddress = new Address();
+
+            UserDetailsDTO userDetails = new UserDetailsDTO();
+            if( user.getAddress_id() != null ){
+                userAddress = addressRepo.getById(user.getAddress_id());
+                userDetails = new UserDetailsDTO(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                userAddress.getLand(),
+                userAddress.getZipcode(),
+                userAddress.getAddressLine(),
+                userAddress.getCity()
+            );
+            }else{
+                userDetails.setId(user.getId());
+                userDetails.setFullname(user.getName());
+                userDetails.setEmail(user.getEmail());
+            }
+            
+            return new ResponseEntity<UserDetailsDTO>(userDetails, HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
+    @GetMapping("user/all")
+    public ResponseEntity<List<User>> getAllUsersAsAdmin(){
+        try{
+            List<User> userList = userService.findAllUsersWithoutAdmin();
+            return new ResponseEntity<>(userList, HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    } 
+    
+    @GetMapping("user/all/roleuser")
+    public ResponseEntity<List<User>> getAllUsersAsManager(){
+        try{
+            List<User> userList = userService.findAllUsersWithAdminOrManager();
+            return new ResponseEntity<>(userList, HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    } 
+    
     @PostMapping("/user/save")
-    public ResponseEntity<User> saveUser(@RequestBody User user) {
-        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
-        return ResponseEntity.created(uri).body(userService.saveUser(user));
+    public ResponseEntity<User> saveUser(@RequestBody RegisterForm NewUser) {
+        // if user not exist
+        if (userService.getUser(NewUser.getUsername()) == null) {
+            System.out.println(NewUser.getFullname());
+            try{
+                // add role user
+                User user = new User();
+                user.setUsername(NewUser.getUsername());
+                user.setPassword(NewUser.getPassword());
+                user.setName(NewUser.getFullname());
+                user.setEmail("test");
+                userService.saveUser(user);
+                userService.addRoleToUser(user.getUsername(), "ROLE_USER");
+
+                System.out.println(user.getUsername());
+
+                URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
+                return ResponseEntity.created(uri).body(user);
+            }catch(Exception e){
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        else {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
     }
 
     @PostMapping("/role/save")
@@ -66,46 +144,37 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-//    @GetMapping("/token/refresh")
-//    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        String authorizationHeader = request.getHeader(AUTHORIZATION);
-//        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
-//            try {
-//                String refresh_token = authorizationHeader.substring("Bearer ".length());
-//                Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
-//                JWTVerifier verifier = JWT.require(algorithm).build();
-//                DecodedJWT decodedJWT = verifier.verify(refresh_token);
-//                String username = decodedJWT.getSubject();
-//                User user = userService.getUser(username);
-//
-//                String access_token = JWT.create()
-//                        .withSubject(user.getUsername())
-//                        .withExpiresAt(new Date(System.currentTimeMillis() + 2 * 60 * 1000 ))
-//                        .withIssuer(request.getRequestURL().toString())
-//                        .withClaim("roles", user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
-//                        .sign(algorithm);
-//
-//                Map<String, String> tokens = new HashMap<>();
-//                tokens.put("access_token", access_token);
-//                tokens.put("refresh_token", refresh_token);
-//                response.setContentType(APPLICATION_JSON_VALUE);
-//                new ObjectMapper().writeValue(response.getOutputStream(), tokens);
-//
-//            }catch (Exception e){
-//
-//                response.setHeader("error", e.getMessage());
-//                response.setStatus(FORBIDDEN.value());
-////                    response.sendError(FORBIDDEN.value());
-//                Map<String, String> error = new HashMap<>();
-//                error.put("error_message", e.getMessage());
-//                response.setContentType(APPLICATION_JSON_VALUE);
-//                new ObjectMapper().writeValue(response.getOutputStream(), error);
-//            }
-//        }else{
-//            throw new RuntimeException("refresh token is missung");
-//        }
-//    }
-
+    // add new user as admin if the request user has role name ROLE_ADMIN
+    @PostMapping("/user/save/manager")
+    public ResponseEntity<User> saveUserAsAdmin(@RequestBody RegisterForm ManagerRegisterForm, HttpServletRequest request) {
+        Principal principal = request.getUserPrincipal();
+        User user = userService.getUser(principal.getName());
+        // if user has role admin
+        if( user.getRoles().contains(roleRepo.findByName("ROLE_ADMIN")) ){
+            // if user not exist
+            if (userService.getUser(ManagerRegisterForm.getUsername()) == null) {
+                try{
+                    // add role user
+                    User newUser = new User();
+                    newUser.setUsername(ManagerRegisterForm.getUsername());
+                    newUser.setPassword(ManagerRegisterForm.getPassword());
+                    newUser.setName(ManagerRegisterForm.getFullname());
+                    newUser.setEmail(ManagerRegisterForm.getEmail());
+                    userService.saveUser(newUser);
+                    userService.addRoleToUser(newUser.getUsername(), "ROLE_MANAGER");
+                    URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save/manager").toUriString());
+                    return ResponseEntity.created(uri).body(newUser);
+                }catch(Exception e){
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+            else {
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
+            }
+        }else{
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
 
 
 }
@@ -113,4 +182,11 @@ public class UserController {
 class RoleToUserForm{
     private String username;
     private String roleName;
+}
+@Data
+class RegisterForm{
+    private String username;
+    private String password;
+    private String email;
+    private String fullname;
 }

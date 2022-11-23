@@ -87,6 +87,21 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public List<User> getUsers() {
         return userRepo.findAll();
     }
+    // Get all users with that have ROLE_USER as role name 
+    @Override
+    public List<User> findAllUsersWithoutAdmin() {
+        return userRepo.findAllUsersWithoutAdmin();
+    }
+    // get all users with that have ROLE_ADMIN or ROLE_MANAGER as role name
+    public List<User> findAllUsersWithAdminOrManager() {
+        return userRepo.findAllUsersWithAdminOrManager();
+    }
 
+
+    // remove user by id
+    @Override
+    public void removeUserById(Long id) {
+        userRepo.deleteById(id);
+    }
 
 }

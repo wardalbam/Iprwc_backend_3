@@ -11,4 +11,6 @@ public interface UserService {
     void addRoleToUser(String username, String roleName);
     User getUser(String userName);
     List<User> getUsers();
+    List<User> findAllUsersWithoutAdmin();
+    void removeUserById(Long id);
 }

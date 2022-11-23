@@ -1,9 +1,17 @@
 package com.example.Iprwc_backend.Model;
 
 import javax.persistence.*;
+
+import org.springframework.lang.NonNull;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
+@Setter
+@Getter
 @Entity
 public class User {
 
@@ -13,19 +21,25 @@ public class User {
     private String name;
     private String username;
     private String password;
+    private Long address_id;
+    @NonNull
+    private String email;
     @ManyToMany(fetch = FetchType.EAGER)
     public Collection<Role> roles = new ArrayList<>();
+  
 
-
-    public User() {}
-
-    public User(Long id, String name, String username, String password, Collection<Role> roles) {
+    public User(Long id, String name, String username, String password, Long address, String email,
+            Collection<Role> roles) {
         this.id = id;
         this.name = name;
         this.username = username;
         this.password = password;
+        this.address_id = address;
+        this.email = email;
         this.roles = roles;
     }
+
+    public User() {}
 
     public Long getId() {
         return id;

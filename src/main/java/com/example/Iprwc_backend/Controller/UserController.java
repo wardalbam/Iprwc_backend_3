@@ -9,6 +9,9 @@ import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+
+import org.hibernate.annotations.Any;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -35,8 +38,14 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getUsers(){
-        return ResponseEntity.ok().body(userService.getUsers());
+    public List<User> getUsers(){
+        return userService.getUsers();
+        // try {
+        //     return new ResponseEntity(userService.getUsers(), HttpStatus.OK);
+        // } catch (Exception e) {
+        //     return new ResponseEntity("cant get users!", HttpStatus.FORBIDDEN);
+        // }
+        
     }
 
     @PostMapping("/user/save")

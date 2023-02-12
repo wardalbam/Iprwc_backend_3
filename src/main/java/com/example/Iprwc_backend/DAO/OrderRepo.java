@@ -11,8 +11,12 @@ import com.example.Iprwc_backend.Model.OrderDetails;
 
 public interface OrderRepo extends JpaRepository<OrderDetails, Long>{
 
+    
+    @Query("SELECT o FROM OrderDetails o WHERE o.username = ?1")
     List<OrderDetails> findByUsername(String username);
 
     @Query("SELECT o FROM OrderDetails o WHERE o.username = ?1 AND o.id = ?2")
     Collection<OrderDetails> getOrderBYOrderIdAndUserId(String username, Long orderId);
+
+
 }

@@ -1,6 +1,5 @@
 package com.example.Iprwc_backend.Controller;
 
-
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +50,7 @@ import com.example.Iprwc_backend.Model.OrderStatus;
 import com.example.Iprwc_backend.Model.Product;
 import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserServiceImpl;
+import com.example.Iprwc_backend.Service.OrderService;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 
@@ -74,98 +74,33 @@ class OrderController {
     @Autowired
     UserRepo userRepo;
 
+    @Autowired
+    OrderService orderService;
+
     private final UserServiceImpl userService;
-    
 
-   
-
-    // @GetMapping
-    // public ResponseEntity<List<Bestelling>> getAll() {
-    //     try {
-    //         List<Bestelling> items = new ArrayList<Bestelling>();
-
-    //         repository.findAll().forEach(items::add);
-
-    //         if (items.isEmpty())
-    //             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-
-    //         return new ResponseEntity<>(items, HttpStatus.OK);
-    //     } catch (Exception e) {
-    //         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-    //     }
-    // }
-
-    // @GetMapping("{id}")
-    // public ResponseEntity<Order> getById(@PathVariable("id") Long id) {
-    //     Optional<Order> existingItemOptional = repository.findById(id);
-
-    //     if (existingItemOptional.isPresent()) {
-    //         return new ResponseEntity<>(existingItemOptional.get(), HttpStatus.OK);
-    //     } else {
-    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    //     }
-    // }
 
     @PostMapping
     public ResponseEntity<OrderDetails> create(@RequestBody OrderDTO orderDTO, HttpServletRequest request) {
-        // return error if orderDTO.productLineList is empty
+        // return error if order has no products 
         if (orderDTO.getProductLineList().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        // sround with try catch
-        try{
-            // get user
-            Principal principal = request.getUserPrincipal();
-            User user = userService.getUser(principal.getName());
-            // create new address 
-            Address address = orderDTO.getAddress();
-            address.setLand("Nederland");
-            addressRepo.save(address);
-            // check if any of orderDTO.address fields are empty
-            if (address.addressLine.isEmpty() || address.city.isEmpty() || address.zipcode.isEmpty()) {
-                // add custom error message to response header 
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } 
+        try {
             // create new order
-            OrderDetails order = new OrderDetails(
-                new ArrayList<>(),
-                user.getUsername(),
-                address,
-                0,
-                OrderStatus.RECIEVED
-            );
-            // create new orderlines
-            List<OrderLine> productLines = new ArrayList<>();
-            // convert orderlinesdto to list of orderlines
-            for (OrderLineDTO orderLineDTO : orderDTO.getProductLineList()) {
-                Product product = orderLineDTO.getProduct();
-                Integer amount = orderLineDTO.getAmount();
-                OrderLine orderLine = new OrderLine(
-                    order.getId(),
-                    product.getId(),
-                    amount,
-                    product.getName(),
-                    product.getPrice(),
-                    product.getImagePath()
-                );
-                orderLineRepo.save(orderLine);
-                productLines.add(orderLine);
-            }
-            // add orderlines to order
-            order.setOrederLines(productLines);
-            System.out.println(orderDTO.getProductLineList());
-            // calculate total price
+            OrderDetails order = orderService.createNewOrder(orderDTO, request);
+
+            // Calculate the total price for the order
             double totalPrice = getTotalPriceOrder(orderDTO.getProductLineList(), order.getId());
-           
-			order.setTotalPrice(totalPrice);
+            order.setTotalPrice(totalPrice);
+
             // save order
             OrderDetails savedItem = repository.save(order);
             return new ResponseEntity<>(savedItem, HttpStatus.CREATED);
-        }catch(Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        
+
     }
 
     public OrderController(OrderRepo repository, OrderLineRepo orderLineRepo, ProductRepo productRepo,
@@ -176,7 +111,7 @@ class OrderController {
         this.userService = userService;
     }
 
-    public double getTotalPriceOrder(List<OrderLineDTO> producList, Long OrderId){
+    public double getTotalPriceOrder(List<OrderLineDTO> producList, Long OrderId) {
         double totalPrice = 0;
         for (OrderLineDTO orderLineDTO : producList) {
             Product product = orderLineDTO.getProduct();
@@ -185,7 +120,6 @@ class OrderController {
         }
         return totalPrice;
     }
-
 
     @DeleteMapping("{id}")
     public ResponseEntity<HttpStatus> delete(@PathVariable("id") Long id) {
@@ -197,19 +131,19 @@ class OrderController {
         }
     }
 
-    // just keep it simple return list of orders and in the front end make it like the product list
+    // just keep it simple return list of orders and in the front end make it like
+    // the product list
     @GetMapping("/all")
     public ResponseEntity<List<OrderDetails>> getUserOrders(HttpServletRequest request) {
         Principal principal = request.getUserPrincipal();
-        
         User user = userService.getUser(principal.getName());
-        // if  one of user roles has  name role_admin return all orders 
-        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_ADMIN")) || user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_MANAGER"))) {
-            
+
+        // if one of user roles has name ROLE_ADMIN return all the orders
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_ADMIN"))
+                || user.getRoles().stream().anyMatch(role -> role.getName().equals("ROLE_MANAGER"))) {
             return new ResponseEntity<>(repository.findAll(), HttpStatus.OK);
         }
         List<OrderDetails> existingItemOptional = repository.findByUsername(user.getUsername());
-
         if (existingItemOptional != null) {
             return new ResponseEntity<>(existingItemOptional, HttpStatus.OK);
         } else {
@@ -218,16 +152,21 @@ class OrderController {
     }
 
     @GetMapping("/all/{orderId}")
-    public ResponseEntity<List<OrderLine>> GetAllOrderLines(@PathVariable("orderId") Long orderId, @RequestHeader (name="Authorization") String token) {
+    public ResponseEntity<List<OrderLine>> GetAllOrderLines(@PathVariable("orderId") Long orderId,
+            @RequestHeader(name = "Authorization") String token) {
+
+        // get the user username from the request
         String token_1 = token.substring("Bearer ".length());
         Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
         JWTVerifier verifier = JWT.require(algorithm).build();
         DecodedJWT decodedJWT = verifier.verify(token_1);
         String username = decodedJWT.getSubject();
-        // Long userId = userService.getUser(username).getId();
+
+        // get the order by its id and username
         Collection<OrderDetails> order = repository.getOrderBYOrderIdAndUserId(username, orderId);
-        // // if order belongs to the user 
-        if( !order.isEmpty() ){
+
+        // if order belongs to the user
+        if (!order.isEmpty()) {
             List<OrderLine> linesList = orderLineRepo.findLinesByOrderId(orderId);
             return new ResponseEntity<>(linesList, HttpStatus.OK);
         }
@@ -235,14 +174,15 @@ class OrderController {
     }
 
     // set status of an order by its id, no user needed
-    
+
     @PutMapping("status")
-    public ResponseEntity<OrderDetails> updateOrderStatus(@RequestParam() String orderId, @RequestParam() String status) {
+    public ResponseEntity<OrderDetails> updateOrderStatus(@RequestParam() String orderId,
+            @RequestParam() String status) {
         // check if the orderStatus enum contains the String status
         System.out.println("tttttttt----------------------------");
-        System.out.println(orderId  + status );
-        try{
-            OrderStatus  orderStatus = OrderStatus.valueOf(status);
+        System.out.println(orderId + status);
+        try {
+            OrderStatus orderStatus = OrderStatus.valueOf(status);
             // orderid from string to Long
             Long id = Long.parseLong(orderId);
             Optional<OrderDetails> orderOptional = repository.findById(id);
@@ -253,16 +193,16 @@ class OrderController {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    // get all orders for a user by user id 
+    // get all orders for a user by user id
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderDetails>> getUserOrders(@PathVariable("userId") Long userId) {
-        // if user not found by userid: return bad request  
-        if(userRepo.findById(userId).isPresent()){
+        // if user not found by userid: return bad request
+        if (userRepo.findById(userId).isPresent()) {
             User user = userRepo.getById(userId);
             List<OrderDetails> existingItemOptional = repository.findByUsername(user.getUsername());
             if (existingItemOptional != null) {
@@ -270,12 +210,11 @@ class OrderController {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-        }else {
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-    
 
+    }
 
     // get order by id
     @GetMapping("/{id}")

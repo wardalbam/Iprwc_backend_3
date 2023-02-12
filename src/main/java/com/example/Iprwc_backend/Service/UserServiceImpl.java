@@ -97,7 +97,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userRepo.findAllUsersWithAdminOrManager();
     }
 
-
     // remove user by id
     @Override
     public void removeUserById(Long id) {

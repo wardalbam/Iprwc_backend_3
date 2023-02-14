@@ -24,7 +24,7 @@ import com.example.Iprwc_backend.Model.ProductStatus;
 import com.example.Iprwc_backend.Service.ProductService;
 
 import lombok.Data;
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
 @RestController
 @RequestMapping("/api")
 public class ProductController {

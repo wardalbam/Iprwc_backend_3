@@ -13,7 +13,6 @@ import com.example.Iprwc_backend.Model.ProductStatus;
 import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.OrderService;
-import com.example.Iprwc_backend.Service.ProductService;
 import com.example.Iprwc_backend.Service.UserService;
 
 
@@ -27,8 +26,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 
 @SpringBootApplication
 public class IprwcBackendApplication {

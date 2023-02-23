@@ -191,10 +191,6 @@ public class IprwcBackendApplication {
 			}
 			order_2.setTotalPrice(totalPrice_2);
 			orderRepo.save(order_2);
-
-			
-			
-
 			
 		};
 	}

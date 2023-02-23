@@ -16,9 +16,6 @@
 	<properties>
 		<java.version>11</java.version>
 	</properties>
-	<mvc:cors>
-		<mvc:mapping path="/**" />
-	</mvc:cors>
 	<dependencies>
 
 		<dependency>

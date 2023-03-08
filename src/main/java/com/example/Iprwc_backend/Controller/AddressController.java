@@ -31,7 +31,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "http://localhost:4200/")
 @RestController
 @RequestMapping("/api/address")
 public class AddressController {

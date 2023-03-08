@@ -54,7 +54,8 @@ import com.example.Iprwc_backend.Service.OrderService;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 
-@CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "http://localhost:4200/")
 @RestController
 @RequestMapping("/order")
 class OrderController {

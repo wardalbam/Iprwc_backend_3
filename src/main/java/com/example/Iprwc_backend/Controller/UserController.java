@@ -21,7 +21,8 @@ import java.security.Principal;
 import java.util.*;
 
 
-@CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "http://localhost:4200/")
 @RestController
 @RequestMapping("/api")
 public class UserController {

@@ -175,13 +175,10 @@ class OrderController {
     }
 
     // set status of an order by its id, no user needed
-
     @PutMapping("status")
     public ResponseEntity<OrderDetails> updateOrderStatus(@RequestParam() String orderId,
             @RequestParam() String status) {
         // check if the orderStatus enum contains the String status
-        System.out.println("tttttttt----------------------------");
-        System.out.println(orderId + status);
         try {
             OrderStatus orderStatus = OrderStatus.valueOf(status);
             // orderid from string to Long

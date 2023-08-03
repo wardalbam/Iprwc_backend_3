@@ -47,19 +47,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().antMatchers(GET, "/api/user/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER");
         http.authorizeRequests().antMatchers(POST, "/api/user/save/manager").hasAnyAuthority("ROLE_ADMIN");
 
-        // Orders
-        http.authorizeRequests().antMatchers(PUT, "/order/status/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER" );
-        http.authorizeRequests().antMatchers(GET, "/order/all").hasAnyAuthority("ROLE_USER",  "ROLE_ADMIN", "ROLE_MANAGER");
-        http.authorizeRequests().antMatchers(POST, "/order").hasAuthority("ROLE_USER");
-        http.authorizeRequests().antMatchers(GET, "/order/{id}").hasAnyAuthority("ROLE_ADMIN", "ROELE_MANAGER");
-        
-        // product 
-        http.authorizeRequests().antMatchers(GET, "/api/product/all").permitAll();
-        http.authorizeRequests().antMatchers(GET, "/api/admin/product/all").hasAnyAuthority("ROLE_MANAGER","ROLE_ADMIN" );
+        // rooms
+        http.authorizeRequests().antMatchers(GET, "/api/rooms").hasAnyAuthority("ROLE_ADMIN");
+        http.authorizeRequests().antMatchers(GET, "/api/rooms/**").hasAnyAuthority("ROLE_ADMIN");
+        // /api/room-types
+        http.authorizeRequests().antMatchers(GET, "/api/room-types").hasAnyAuthority("ROLE_ADMIN");
 
-        http.authorizeRequests().antMatchers(GET, "/api/product").permitAll();
-        http.authorizeRequests().antMatchers(POST, "/api/product/add").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER");
-        http.authorizeRequests().antMatchers(DELETE, "/api/product/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER");
+        // reservations
 
  
         http.addFilter(new CustomAuthentivationFilter(authenticationManagerBean()));

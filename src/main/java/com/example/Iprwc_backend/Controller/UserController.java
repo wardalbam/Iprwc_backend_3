@@ -1,11 +1,8 @@
 package com.example.Iprwc_backend.Controller;
 
-
-import com.example.Iprwc_backend.DAO.AddressRepo;
 import com.example.Iprwc_backend.DAO.RoleRepo;
 import com.example.Iprwc_backend.DAO.UserRepo;
 import com.example.Iprwc_backend.DTO.UserDetailsDTO;
-import com.example.Iprwc_backend.Model.Address;
 import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserServiceImpl;
@@ -20,21 +17,19 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.*;
 
-@CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
+// @CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
 // @CrossOrigin(origins = "http://localhost:4200/")
 @RestController
 @RequestMapping("/api")
 public class UserController {
 
     private final UserServiceImpl userService;
-    private final AddressRepo addressRepo;
     private final UserRepo userRepo;
     @Autowired
     RoleRepo roleRepo;
     
-    public UserController(UserServiceImpl userService, AddressRepo addressRepo, UserRepo userRepo) {
+    public UserController(UserServiceImpl userService,  UserRepo userRepo) {
         this.userService = userService;
-        this.addressRepo = addressRepo;
         this.userRepo = userRepo;
     }
     // delete user by id
@@ -58,26 +53,12 @@ public class UserController {
         try{
             Principal principal = request.getUserPrincipal();
             User user = userService.getUser(principal.getName());
-            Address userAddress = new Address();
-
             UserDetailsDTO userDetails = new UserDetailsDTO();
-            if( user.getAddress_id() != null ){
-                userAddress = addressRepo.getById(user.getAddress_id());
                 userDetails = new UserDetailsDTO(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                userAddress.getLand(),
-                userAddress.getZipcode(),
-                userAddress.getAddressLine(),
-                userAddress.getCity()
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail()
             );
-            }else{
-                userDetails.setId(user.getId());
-                userDetails.setFullname(user.getName());
-                userDetails.setEmail(user.getEmail());
-            }
-            
             return new ResponseEntity<UserDetailsDTO>(userDetails, HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

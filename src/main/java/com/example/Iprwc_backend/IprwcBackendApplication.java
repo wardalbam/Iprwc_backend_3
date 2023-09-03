@@ -47,7 +47,6 @@ public class IprwcBackendApplication {
 		
 			userService.saveUser(new User(null, 
 			"Ward", 
-			// "ward", 
 			"1234", 
 			"wardalbam32@gmail.com",
 			new ArrayList<>()));

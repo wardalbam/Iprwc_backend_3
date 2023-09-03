@@ -47,8 +47,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 
-// @CrossOrigin(origins = "https://gifted-nobel-9ce0d0.netlify.app")
-@CrossOrigin(origins = "http://localhost:4200") // Allow requests from your Angular app's origin
+@CrossOrigin(origins = "https://loquacious-baklava-ac398e.netlify.app/")
+// @CrossOrigin(origins = "http://localhost:4200") // Allow requests from your Angular app's origin
 // allow delete request
 
 

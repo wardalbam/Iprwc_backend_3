@@ -5,6 +5,7 @@ import com.example.Iprwc_backend.DAO.UserRepo;
 import com.example.Iprwc_backend.DTO.UserDetailsDTO;
 import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
+import com.example.Iprwc_backend.Service.ReservationService;
 import com.example.Iprwc_backend.Service.UserServiceImpl;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +26,18 @@ public class UserController {
 
     private final UserServiceImpl userService;
     private final UserRepo userRepo;
+
     @Autowired
     RoleRepo roleRepo;
+    @Autowired
+    ReservationService reservationService;
     
     public UserController(UserServiceImpl userService,  UserRepo userRepo) {
         this.userService = userService;
         this.userRepo = userRepo;
     }
     // delete user by id
-    @DeleteMapping("user/delete/{id}")
+    @GetMapping("user/delete/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") Long id){
         try{
             // if user dont have role admin 
@@ -56,7 +60,7 @@ public class UserController {
             UserDetailsDTO userDetails = new UserDetailsDTO();
                 userDetails = new UserDetailsDTO(
                     user.getId(),
-                    user.getName(),
+                    user.getUsername(),
                     user.getEmail()
             );
             return new ResponseEntity<UserDetailsDTO>(userDetails, HttpStatus.OK);
@@ -69,6 +73,10 @@ public class UserController {
     public ResponseEntity<List<User>> getAllUsersAsAdmin(){
         try{
             List<User> userList = userService.findAllUsersWithoutAdmin();
+            // return users without password
+            for (User user : userList) {
+                user.setPassword("");
+            }
             return new ResponseEntity<>(userList, HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -89,14 +97,15 @@ public class UserController {
     public ResponseEntity<User> saveUser(@RequestBody RegisterForm NewUser) {
         // if user not exist
         if (userService.getUser(NewUser.getUsername()) == null) {
-            System.out.println(NewUser.getFullname());
             try{
                 // add role user
                 User user = new User();
                 user.setUsername(NewUser.getUsername());
                 user.setPassword(NewUser.getPassword());
-                user.setName(NewUser.getFullname());
-                user.setEmail("test");
+                // email
+                user.setEmail(
+                    NewUser.getEmail()
+                );
                 userService.saveUser(user);
                 userService.addRoleToUser(user.getUsername(), "ROLE_USER");
 
@@ -139,7 +148,7 @@ public class UserController {
                     User newUser = new User();
                     newUser.setUsername(ManagerRegisterForm.getUsername());
                     newUser.setPassword(ManagerRegisterForm.getPassword());
-                    newUser.setName(ManagerRegisterForm.getFullname());
+                    // newUser.setName(ManagerRegisterForm.getFullname());
                     newUser.setEmail(ManagerRegisterForm.getEmail());
                     userService.saveUser(newUser);
                     userService.addRoleToUser(newUser.getUsername(), "ROLE_MANAGER");
@@ -169,5 +178,4 @@ class RegisterForm{
     private String username;
     private String password;
     private String email;
-    private String fullname;
 }

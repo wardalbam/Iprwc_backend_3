@@ -26,5 +26,12 @@ public class RoomType {
 
     @Column(nullable = false)
     private RoomTypeOptions type; // This can be active / hidden
+
+    @Column(nullable = false)
+    private String description; // name of the room
+
+    // capacity of the room
+    @Column(nullable = false)
+    private int capacity;
     
 }

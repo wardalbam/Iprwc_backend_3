@@ -2,6 +2,7 @@ package com.example.Iprwc_backend.Service;
 
 import com.example.Iprwc_backend.DAO.RoleRepo;
 import com.example.Iprwc_backend.DAO.UserRepo;
+import com.example.Iprwc_backend.Model.Reservation;
 import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,6 +29,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
+    private final ReservationService reservationService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -42,10 +47,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
     }
 
-    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, PasswordEncoder passwordEncoder, ReservationService reservationService) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
+        this.reservationService = reservationService;
     }
 
     public UserRepo getUserRepo() {
@@ -100,7 +106,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     // remove user by id
     @Override
     public void removeUserById(Long id) {
+        // remove all reservations that has this user id
+        List<Reservation> reservations = reservationService.getAllReservations(
+            userRepo.findById(id).get()
+        );
+        reservationService.removeReservations(reservations);
         userRepo.deleteById(id);
+    }
+
+    // check if user has role admin
+    @Override
+    public boolean checkIfUserHasAdminRole(HttpServletRequest request) {
+
+        Principal principal = request.getUserPrincipal();
+        User user = this.getUser(principal.getName());
+        if( user.getRoles().contains(roleRepo.findByName("ROLE_ADMIN")) ){
+            return true;
+        }else{
+            return false;
+        }
     }
 
 }

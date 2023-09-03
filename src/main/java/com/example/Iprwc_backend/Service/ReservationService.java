@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 import com.example.Iprwc_backend.DAO.ReservationRepository;
 import com.example.Iprwc_backend.DTO.TimeSlotDTO;
 import com.example.Iprwc_backend.Model.Reservation;
-import com.example.Iprwc_backend.Model.Room;
-import com.example.Iprwc_backend.Model.RoomType;
+import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.helper.RoomConfig;
 
 @Service
@@ -19,82 +18,108 @@ public class ReservationService {
 
     @Autowired
     private ReservationRepository reservationRepository;
-    
-     @Autowired
+
+
+    @Autowired
     private RoomConfig roomConfiguration;
 
 
+    private static final int TIME_SLOT_DURATION = 60;
 
-    // ... other methods ...
 
-    public List<Reservation> getAllReservations() {
-        return reservationRepository.findAll();
+    // getAllReservationsAdmin
+    public List<Reservation> getAllReservationsAdmin() {
+        // start from today and get all reservations in the future
+        LocalDate today = LocalDate.now();
+        return reservationRepository.findByStartTimeAfter(today.atStartOfDay());
+
+    }
+
+    // removeReservations
+    public void removeReservations(List<Reservation> reservations) {
+        reservationRepository.deleteAll(reservations);
+    }
+
+    public List<Reservation> getAllReservations(User user) {
+        return reservationRepository.findByUserId(user.getId());
     }
 
     public Reservation getReservationById(Long id) {
         return reservationRepository.findById(id).orElse(null);
     }
 
-    public List<Reservation> getReservationsByRoomType(RoomType roomType) {
-        return reservationRepository.findByRoomRoomType(roomType);
-    }
-
-    public List<TimeSlotDTO> getAvailableTimeSlotsForRoomType(Long roomTypeId, LocalDate reservationDate) {
-        LocalDateTime startOfReservationDate = reservationDate.atStartOfDay();
-        LocalDateTime endOfReservationDate = startOfReservationDate.plusDays(1).minusMinutes(1);
-    
-        // Get the opening and closing times from the room configuration
-        LocalTime openingTime = roomConfiguration.getOpeningTimeAsLocalTime();
+    // return all timeStols in a day from opening to closing by Date in
+    // List<TimeslotDTO>
+    public List<TimeSlotDTO> getAllTimeSlotsByDate(LocalDate date) {
+        LocalTime openingTime = roomConfiguration.getOpeningTimeForDay(date);
         LocalTime closingTime = roomConfiguration.getClosingTimeAsLocalTime();
-    
-        List<Reservation> reservations = reservationRepository.findByRoomTypeAndEndTimeAfter(roomTypeId, LocalDateTime.now());
-        List<TimeSlotDTO> availableTimeSlots = new ArrayList<>();
-    
-        // Initialize currentSlotStart
-        LocalDateTime currentSlotStart = (LocalDateTime.now().isBefore(startOfReservationDate))
-            ? startOfReservationDate.withHour(openingTime.getHour()).withMinute(openingTime.getMinute())
-            : ((LocalDateTime.now().getMinute() < 30)
-                ? LocalDateTime.now().withMinute(30).withSecond(0).withNano(0)
-                : LocalDateTime.now().plusHours(1).withMinute(0).withSecond(0).withNano(0));
-    
-        // Use a while loop with the helper method to find the next valid time slot
-        final LocalDateTime[] nextSlotStartWrapper = { currentSlotStart };
-        while (nextSlotStartWrapper[0].isBefore(endOfReservationDate) && nextSlotStartWrapper[0].toLocalTime().isBefore(closingTime)) {
-            LocalDateTime currentSlotEnd = nextSlotStartWrapper[0].plusMinutes(30);
-    
-            if (currentSlotEnd.toLocalTime().isAfter(openingTime) &&
-                reservations.stream().noneMatch(r -> r.getStartTime().isBefore(currentSlotEnd) && r.getEndTime().isAfter(nextSlotStartWrapper[0]))) {
-                TimeSlotDTO timeSlotDTO = new TimeSlotDTO(); 
-                timeSlotDTO.setStartTime(nextSlotStartWrapper[0]);
-                timeSlotDTO.setEndTime(currentSlotEnd);
-                availableTimeSlots.add(timeSlotDTO);
+
+        List<TimeSlotDTO> timeSlots = new ArrayList<>();
+
+        for (LocalTime startTime = openingTime; startTime
+                .isBefore(closingTime); startTime = startTime.plusMinutes(TIME_SLOT_DURATION)) {
+            TimeSlotDTO timeSlotDTO = new TimeSlotDTO();
+            timeSlotDTO.setStartTime(date.atTime(startTime));
+            timeSlotDTO.setEndTime(date.atTime(startTime.plusMinutes(TIME_SLOT_DURATION)));
+            timeSlots.add(timeSlotDTO);
+        }
+
+        // Debugging logs
+        System.out.println("Generating time slots for date: " + date);
+        return timeSlots;
+    }
+
+    public List<TimeSlotDTO> getUnavailableTimeSlotsByDate(LocalDate date, Long roomId) {
+        List<TimeSlotDTO> timeSlots = getAllTimeSlotsByDate(date);
+        List<TimeSlotDTO> unavailableTimeSlots = new ArrayList<>();
+
+        LocalDateTime startOfReservationDate = roomConfiguration.getOpeningTimeForDay(date).atDate(date);
+        LocalDateTime endOfReservationDate = roomConfiguration.getClosingTimeAsLocalTime().atDate(date);
+
+        List<Reservation> reservations = reservationRepository.findReservationsByRoomAndDate(
+                roomId,
+                startOfReservationDate,
+                endOfReservationDate);
+
+        for (TimeSlotDTO timeSlotDTO : timeSlots) {
+            LocalDateTime startTime = timeSlotDTO.getStartTime();
+            LocalDateTime endTime = timeSlotDTO.getEndTime();
+            // Check if there are any reservations that overlap with the current time slot
+            // and same room id
+            boolean isUnavailable = reservations.stream()
+                    .anyMatch(reservation -> (reservation.getStartTime().isBefore(endTime)) &&
+                            (reservation.getEndTime().isAfter(startTime) ||
+                                    reservation.getEndTime().isEqual(endTime) || // Consider reservations that end at
+                                                                                 // closing time
+                                    reservation.getEndTime().isEqual(startOfReservationDate) // Consider reservations
+                                                                                             // that end at opening time
+                            ));
+
+            if (isUnavailable || startTime.isBefore(LocalDateTime.now())) {
+                unavailableTimeSlots.add(timeSlotDTO);
+
             }
-    
-            // Move to the next time slot
-            nextSlotStartWrapper[0] = getNextValidTimeSlot(nextSlotStartWrapper[0].plusMinutes(30), openingTime, closingTime);
+
+
         }
-    
-        return availableTimeSlots;
-    }
-    
-    // Helper method to find the next valid time slot
-    private LocalDateTime getNextValidTimeSlot(LocalDateTime currentSlot, LocalTime openingTime, LocalTime closingTime) {
-        if (currentSlot.toLocalTime().isAfter(closingTime)) {
-            // If the current slot's time is after the closing time, reset to the next day's opening time
-            return currentSlot.plusDays(1).withHour(openingTime.getHour()).withMinute(openingTime.getMinute());
-        } else if (currentSlot.toLocalTime().isBefore(openingTime)) {
-            // If the current slot's time is before the opening time, set to the opening time
-            return currentSlot.withHour(openingTime.getHour()).withMinute(openingTime.getMinute());
-        } else {
-            // Round to the next valid half-hour time slot
-            int minute = currentSlot.getMinute();
-            int minuteOffset = minute % 30 == 0 ? 30 : 60 - minute;
-            return currentSlot.plusMinutes(minuteOffset);
-        }
+        return unavailableTimeSlots;
     }
 
+    public List<Reservation> createBulkReservations(List<Reservation> reservations) {
+        // You can perform any additional business logic or validations here
+        // Before saving the reservations in bulk
 
+        // Save the reservations in bulk
+        List<Reservation> savedReservations = reservationRepository.saveAll(reservations);
 
+        // You can perform any post-save operations or return additional data if needed
 
+        return savedReservations;
+    }
+
+    // delete by id
+    public void deleteReservationById(Long id) {
+        reservationRepository.deleteById(id);
+    }
 
 }

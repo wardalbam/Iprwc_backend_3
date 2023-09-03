@@ -9,6 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Cascade;
+
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,15 +31,19 @@ public class Room {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private int capacity;
 
     @Column(nullable = true)
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "room_type_id", nullable = false)
-    private RoomType roomType;
+    // @ManyToOne
+    // @JoinColumn(name = "room_type_id", nullable = true)
+    // private RoomType roomType;
+
+    // add nullable columns for the notes
+    @Column(nullable = true)
+    private String notes;
 
    
 }

@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
@@ -27,14 +29,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
+
         auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
 
     }
 
+   
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        // allow delete request all origins
+
+       
+
+
+        // http.cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues());
+
+        // allow delete request all origins
         http.cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues());
+        http.headers().frameOptions().disable();
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(STATELESS);
 
@@ -48,23 +61,44 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().antMatchers(POST, "/api/user/save/manager").hasAnyAuthority("ROLE_ADMIN");
 
         // rooms
-        http.authorizeRequests().antMatchers(GET, "/api/rooms").hasAnyAuthority("ROLE_ADMIN");
-        http.authorizeRequests().antMatchers(GET, "/api/rooms/**").hasAnyAuthority("ROLE_ADMIN");
-        // /api/room-types
-        http.authorizeRequests().antMatchers(GET, "/api/room-types").hasAnyAuthority("ROLE_ADMIN");
+        http.authorizeRequests().antMatchers(GET, "/api/rooms").permitAll();
+        http.authorizeRequests().antMatchers(GET, "/api/rooms/**").permitAll();
+        // get /api/rooms/delete/** */
+        http.authorizeRequests().antMatchers(DELETE, "/api/rooms/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER");
+        // post /api/rooms/create
+        http.authorizeRequests().antMatchers(POST, "/api/rooms/create").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER");
 
-        // reservations
+
+
+        http.authorizeRequests().antMatchers(GET, "/api/room-types").permitAll();
+
+
+        http.authorizeRequests().antMatchers(GET, "/api/avalible-time-slots").permitAll();
+
+        // api/reservations/create
+        http.authorizeRequests().antMatchers(POST, "/api/reservations/create").permitAll();
+        // api/reservations/delete
+        http.authorizeRequests().antMatchers(DELETE, "/api/reservations/delete/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER");
 
  
         http.addFilter(new CustomAuthentivationFilter(authenticationManagerBean()));
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+
+
+
+     http.cors().and().csrf().disable();
+
+
 
     }
 
     @Bean
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception{
+
         return super.authenticationManagerBean();
     }
+
+
 
 }

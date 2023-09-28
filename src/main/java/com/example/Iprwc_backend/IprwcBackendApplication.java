@@ -40,6 +40,7 @@ public class IprwcBackendApplication {
 		RoomTypeRepository roomTypeRepository,
 		UserRepo userRepository){
 		return args -> {
+			
 			userService.saveRole(new Role("ROLE_ADMIN"));
 
 			// check if user already exists

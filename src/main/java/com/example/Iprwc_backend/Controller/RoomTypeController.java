@@ -15,7 +15,7 @@ import com.example.Iprwc_backend.DTO.RoomTypeDTO;
 import com.example.Iprwc_backend.Model.RoomType;
 import com.example.Iprwc_backend.Service.RoomTypeService;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://gifted-nobel-9ce0d0.netlify.app"})
+@CrossOrigin(origins = {"http://localhost:4200", "https://loquacious-baklava-ac398e.netlify.app/"})
 
 
 @RestController

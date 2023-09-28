@@ -28,7 +28,7 @@ import com.example.Iprwc_backend.Service.RoomService;
 import com.example.Iprwc_backend.Service.UserService;
 import com.example.Iprwc_backend.helper.RoomConfig;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://gifted-nobel-9ce0d0.netlify.app"})
+@CrossOrigin(origins = {"http://localhost:4200", "https://loquacious-baklava-ac398e.netlify.app/"})
 
 @RestController
 @RequestMapping("/api/rooms")

@@ -169,8 +169,6 @@ public ResponseEntity<?> createBulkReservations(@RequestBody CreateBulkReservati
                 startTimeDateTime,
                 endTimeDateTime
             );
-
-
     
             if ( !availableRoom ) {
                 throw new IllegalArgumentException("No room available for the selected time slot.");
@@ -182,6 +180,7 @@ public ResponseEntity<?> createBulkReservations(@RequestBody CreateBulkReservati
             reservation.setRoom(
                 roomRepository.findById(requestDTO.getRoomId()).get()
             );
+            reservation.setNote(requestDTO.getNote());
             reservation.setUser(user);
             // Add the reservation to the list
             reservations.add(reservation);

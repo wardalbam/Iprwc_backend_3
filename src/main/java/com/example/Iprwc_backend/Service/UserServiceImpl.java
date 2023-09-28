@@ -69,6 +69,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return this.userRepo.save(user);
     }
 
+
+    // send email to user with login details
+        
+
+
+
     @Override
     public Role saveRole(Role role) {
         log.info("adding role to database");

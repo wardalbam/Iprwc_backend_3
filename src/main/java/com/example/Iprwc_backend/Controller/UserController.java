@@ -75,7 +75,8 @@ public class UserController {
             List<User> userList = userService.findAllUsersWithoutAdmin();
             // return users without password
             for (User user : userList) {
-                user.setPassword("");
+                String decodedPasswordString = new String(Base64.getDecoder().decode(user.getPassword()));
+                user.setPassword(decodedPasswordString);
             }
             return new ResponseEntity<>(userList, HttpStatus.OK);
         }catch(Exception e){
@@ -95,6 +96,14 @@ public class UserController {
     
     @PostMapping("/user/save")
     public ResponseEntity<User> saveUser(@RequestBody RegisterForm NewUser) {
+
+        // validate NewUser data
+        if( NewUser.getUsername().isEmpty() || NewUser.getPassword().isEmpty() || NewUser.getEmail().isEmpty() ){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+
+
         // if user not exist
         if (userService.getUser(NewUser.getUsername()) == null) {
             try{

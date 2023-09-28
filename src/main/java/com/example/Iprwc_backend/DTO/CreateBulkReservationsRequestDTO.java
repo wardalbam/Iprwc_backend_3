@@ -16,5 +16,6 @@ public class CreateBulkReservationsRequestDTO {
     public  Long roomId;
     public TimeSlotStringDTO[] timeSlots;
     public LocalDate reservationDate;
+    public String note;
 
 }

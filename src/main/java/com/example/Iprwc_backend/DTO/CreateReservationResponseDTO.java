@@ -14,9 +14,7 @@ public class CreateReservationResponseDTO {
     private Long id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    // private Long roomTypeId;
     private String roomName;
     
 
-    // Getters and setters (you can use Lombok annotations if desired)
 }

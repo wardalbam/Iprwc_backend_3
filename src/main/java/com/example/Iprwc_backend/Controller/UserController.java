@@ -73,10 +73,10 @@ public class UserController {
         try{
             List<User> userList = userService.findAllUsersWithoutAdmin();
             // return users without password
-            // for (User user : userList) {
-            //     String decodedPasswordString = new String(Base64.getDecoder().decode(user.getPassword()));
-            //     user.setPassword(decodedPasswordString);
-            // }
+            for (User user : userList) {
+                // String decodedPasswordString = ??;
+                // user.setPassword(decodedPasswordString);
+            }
             return new ResponseEntity<>(userList, HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

@@ -4,12 +4,6 @@ import com.example.Iprwc_backend.DAO.ReservationRepository;
 import com.example.Iprwc_backend.DAO.RoomRepository;
 import com.example.Iprwc_backend.DAO.RoomTypeRepository;
 import com.example.Iprwc_backend.DAO.UserRepo;
-import com.example.Iprwc_backend.Model.Reservation;
-import com.example.Iprwc_backend.Model.Role;
-import com.example.Iprwc_backend.Model.Room;
-import com.example.Iprwc_backend.Model.RoomType;
-import com.example.Iprwc_backend.Model.RoomTypeOptions;
-import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserService;
 
 

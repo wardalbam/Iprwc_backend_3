@@ -18,5 +18,10 @@ public interface UserRepo extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT u.id FROM User u JOIN u.roles r WHERE r.name = 'ROLE_ADMIN' OR r.name = 'ROLE_MANAGER')")
     List<User> findAllUsersWithAdminOrManager();
 
+    // findByEmail
+    User findByEmail(String email);
 
+    // updatePassword
+    @Query("UPDATE User u SET u.password = ?1 WHERE u.id = ?2")
+    void updatePassword(String password, Long userId);
 }

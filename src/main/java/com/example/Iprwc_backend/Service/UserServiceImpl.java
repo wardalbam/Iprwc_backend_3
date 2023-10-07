@@ -72,8 +72,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     // send email to user with login details
         
+    @Override
+    public User findByEmail(String email) {
+        return userRepo.findByEmail(email);
+    }
 
+    // updatePassword
 
+    @Override
+    public void updatePassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
+    }
 
     @Override
     public Role saveRole(Role role) {

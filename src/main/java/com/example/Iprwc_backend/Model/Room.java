@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -44,6 +45,14 @@ public class Room {
     // add nullable columns for the notes
     @Column(nullable = true)
     private String notes;
+
+    // TODO: add image to room
+    // add image to room
+
+    //     @Lob
+    // @Column(nullable = true)
+    // private byte[] image;
+
 
    
 }

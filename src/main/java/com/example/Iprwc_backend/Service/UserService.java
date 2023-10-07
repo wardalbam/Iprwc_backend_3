@@ -17,5 +17,8 @@ public interface UserService {
     void removeUserById(Long id);
     // check if user has role admin
     boolean checkIfUserHasAdminRole(HttpServletRequest request);
-
+    // findByEmail
+    User findByEmail(String email);
+    // updatePassword
+    void updatePassword(User user, String newPassword);
 }

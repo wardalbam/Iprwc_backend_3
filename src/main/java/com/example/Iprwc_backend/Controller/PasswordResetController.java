@@ -26,6 +26,8 @@ public class PasswordResetController {
      @Autowired
     private JavaMailSender javaMailSender; // Inject JavaMailSender bean
 
+    private String frontApi = "https://loquacious-baklava-ac398e.netlify.app/";
+
     
     @PostMapping("/request/{email}")
     public ResponseEntity<?> requestPasswordReset(@PathVariable String email) {
@@ -61,7 +63,7 @@ public class PasswordResetController {
             message.setTo(userEmail);
             message.setSubject("Password Reset");
             message.setText("To reset your password, click the following link:\n\n"
-                    + "http://localhost:4200/reset-password?token=" + token);
+                    + frontApi + "/reset-password?token=" + token);
 
             // Send the email using JavaMailSender
             javaMailSender.send(message);

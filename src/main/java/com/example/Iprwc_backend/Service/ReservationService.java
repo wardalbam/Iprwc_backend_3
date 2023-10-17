@@ -1,11 +1,15 @@
 package com.example.Iprwc_backend.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import com.example.Iprwc_backend.DAO.ReservationRepository;
 import com.example.Iprwc_backend.DTO.TimeSlotDTO;
@@ -19,13 +23,10 @@ public class ReservationService {
     @Autowired
     private ReservationRepository reservationRepository;
 
-
     @Autowired
     private RoomConfig roomConfiguration;
 
-
     private static final int TIME_SLOT_DURATION = 60;
-
 
     // getAllReservationsAdmin
     public List<Reservation> getAllReservationsAdmin() {
@@ -100,7 +101,6 @@ public class ReservationService {
 
             }
 
-
         }
         return unavailableTimeSlots;
     }
@@ -120,6 +120,13 @@ public class ReservationService {
     // delete by id
     public void deleteReservationById(Long id) {
         reservationRepository.deleteById(id);
+    }
+
+    public List<Reservation> getReservationsByWeek(LocalDate weekStartDate, LocalDate weekEndDate) {
+        LocalDateTime weekStartDateTime = weekStartDate.atStartOfDay();
+        LocalDateTime weekEndDateTime = weekEndDate.atTime(23, 59, 59); // Set the time to the end of the day
+
+        return reservationRepository.findByStartTimeBetween(weekStartDateTime, weekEndDateTime);
     }
 
 }

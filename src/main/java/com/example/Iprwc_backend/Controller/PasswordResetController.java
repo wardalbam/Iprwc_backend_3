@@ -1,6 +1,5 @@
 package com.example.Iprwc_backend.Controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +12,6 @@ import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.PasswordResetTokenService;
 import com.example.Iprwc_backend.Service.UserService;
 
-
-
-
 @RestController
 @RequestMapping("/api/password-reset")
 public class PasswordResetController {
@@ -23,12 +19,12 @@ public class PasswordResetController {
     private PasswordResetTokenService tokenService;
     @Autowired
     private UserService userService;
-     @Autowired
+    @Autowired
     private JavaMailSender javaMailSender; // Inject JavaMailSender bean
 
-    private String frontApi = "https://loquacious-baklava-ac398e.netlify.app/";
+    // private String frontApi = "https://loquacious-baklava-ac398e.netlify.app/";
+    private String frontApi = "http://localhost:4200/";
 
-    
     @PostMapping("/request/{email}")
     public ResponseEntity<?> requestPasswordReset(@PathVariable String email) {
         // Find the user by email
@@ -37,7 +33,7 @@ public class PasswordResetController {
         if (user != null) {
             // Generate a unique token for the user
             PasswordResetToken token = tokenService.createTokenForUserWithEmail(email);
-            
+
             if (token != null) {
                 // Send a password reset email to the user
                 boolean emailSent = sendPasswordResetEmail(user.getEmail(), token.getToken());
@@ -83,9 +79,9 @@ public class PasswordResetController {
             User user = resetToken.getUser();
             userService.updatePassword(user, newPassword);
             tokenService.deleteToken(resetToken);
-            return ResponseEntity.ok("Password reset successful.");
+            return new ResponseEntity<>("Password reset successfully.", HttpStatus.OK);
         } else {
-            return ResponseEntity.badRequest().body("Invalid or expired token.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid or expired token.");
         }
     }
 }

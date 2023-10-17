@@ -46,13 +46,8 @@ public class Room {
     @Column(nullable = true)
     private String notes;
 
-    // TODO: add image to room
-    // add image to room
+    @Lob // Use @Lob to store a large binary object (e.g., image)
+    @Column(nullable = true)
+    private String image; // Updated to a String to store the base64-encoded image
 
-    //     @Lob
-    // @Column(nullable = true)
-    // private byte[] image;
-
-
-   
 }

@@ -18,7 +18,7 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.*;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://loquacious-baklava-ac398e.netlify.app/"})
+@CrossOrigin(origins = { "http://localhost:4200", "https://loquacious-baklava-ac398e.netlify.app/" })
 @RestController
 @RequestMapping("/api")
 public class UserController {
@@ -30,47 +30,47 @@ public class UserController {
     RoleRepo roleRepo;
     @Autowired
     ReservationService reservationService;
-    
-    public UserController(UserServiceImpl userService,  UserRepo userRepo) {
+
+    public UserController(UserServiceImpl userService, UserRepo userRepo) {
         this.userService = userService;
         this.userRepo = userRepo;
     }
+
     // delete user by id
     @GetMapping("user/delete/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable("id") Long id){
-        try{
-            // if user dont have role admin 
-            if( !userRepo.getById(id).getRoles().contains(roleRepo.findByName("ROLE_ADMIN")) ){
+    public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {
+        try {
+            // if user dont have role admin
+            if (!userRepo.getById(id).getRoles().contains(roleRepo.findByName("ROLE_ADMIN"))) {
                 userService.removeUserById(id);
                 return new ResponseEntity<>(HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>("Admin cannot be removed!",HttpStatus.FORBIDDEN);
+            } else {
+                return new ResponseEntity<>("Admin cannot be removed!", HttpStatus.FORBIDDEN);
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("user/details")
-    public ResponseEntity<UserDetailsDTO> getEmail( HttpServletRequest request ){
-        try{
+    public ResponseEntity<UserDetailsDTO> getEmail(HttpServletRequest request) {
+        try {
             Principal principal = request.getUserPrincipal();
             User user = userService.getUser(principal.getName());
             UserDetailsDTO userDetails = new UserDetailsDTO();
-                userDetails = new UserDetailsDTO(
+            userDetails = new UserDetailsDTO(
                     user.getId(),
                     user.getUsername(),
-                    user.getEmail()
-            );
+                    user.getEmail());
             return new ResponseEntity<UserDetailsDTO>(userDetails, HttpStatus.OK);
-        }catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("user/all")
-    public ResponseEntity<List<User>> getAllUsersAsAdmin(){
-        try{
+    public ResponseEntity<List<User>> getAllUsersAsAdmin() {
+        try {
             List<User> userList = userService.findAllUsersWithoutAdmin();
             // return users without password
             for (User user : userList) {
@@ -78,54 +78,52 @@ public class UserController {
                 // user.setPassword(decodedPasswordString);
             }
             return new ResponseEntity<>(userList, HttpStatus.OK);
-        }catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    } 
-    
+    }
+
     @GetMapping("user/all/roleuser")
-    public ResponseEntity<List<User>> getAllUsersAsManager(){
-        try{
+    public ResponseEntity<List<User>> getAllUsersAsManager() {
+        try {
             List<User> userList = userService.findAllUsersWithAdminOrManager();
             return new ResponseEntity<>(userList, HttpStatus.OK);
-        }catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    } 
-    
+    }
+
     @PostMapping("/user/save")
     public ResponseEntity<User> saveUser(@RequestBody RegisterForm NewUser) {
 
         // validate NewUser data
-        if( NewUser.getUsername().isEmpty() || NewUser.getPassword().isEmpty() || NewUser.getEmail().isEmpty() ){
+        if (NewUser.getUsername().isEmpty() || NewUser.getPassword().isEmpty() || NewUser.getEmail().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-
-
         // if user not exist
         if (userService.getUser(NewUser.getUsername()) == null) {
-            try{
+            try {
                 // add role user
                 User user = new User();
                 user.setUsername(NewUser.getUsername());
                 user.setPassword(NewUser.getPassword());
                 // email
                 user.setEmail(
-                    NewUser.getEmail()
-                );
+                        NewUser.getEmail());
                 userService.saveUser(user);
                 userService.addRoleToUser(user.getUsername(), "ROLE_USER");
+                URI uri = URI.create(
+                        ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
+                // send email with credentials
+                userService.sendCredentials(user.getEmail(), user.getUsername(),
+                        NewUser.getPassword());
 
-                System.out.println(user.getUsername());
-
-                URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save").toUriString());
                 return ResponseEntity.created(uri).body(user);
-            }catch(Exception e){
+            } catch (Exception e) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        }
-        else {
+        } else {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
@@ -144,14 +142,15 @@ public class UserController {
 
     // add new user as admin if the request user has role name ROLE_ADMIN
     @PostMapping("/user/save/manager")
-    public ResponseEntity<User> saveUserAsAdmin(@RequestBody RegisterForm ManagerRegisterForm, HttpServletRequest request) {
+    public ResponseEntity<User> saveUserAsAdmin(@RequestBody RegisterForm ManagerRegisterForm,
+            HttpServletRequest request) {
         Principal principal = request.getUserPrincipal();
         User user = userService.getUser(principal.getName());
         // if user has role admin
-        if( user.getRoles().contains(roleRepo.findByName("ROLE_ADMIN")) ){
+        if (user.getRoles().contains(roleRepo.findByName("ROLE_ADMIN"))) {
             // if user not exist
             if (userService.getUser(ManagerRegisterForm.getUsername()) == null) {
-                try{
+                try {
                     // add role user
                     User newUser = new User();
                     newUser.setUsername(ManagerRegisterForm.getUsername());
@@ -160,29 +159,30 @@ public class UserController {
                     newUser.setEmail(ManagerRegisterForm.getEmail());
                     userService.saveUser(newUser);
                     userService.addRoleToUser(newUser.getUsername(), "ROLE_MANAGER");
-                    URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/save/manager").toUriString());
+                    URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath()
+                            .path("/api/user/save/manager").toUriString());
                     return ResponseEntity.created(uri).body(newUser);
-                }catch(Exception e){
+                } catch (Exception e) {
                     return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
                 }
-            }
-            else {
+            } else {
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
             }
-        }else{
+        } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
-
 }
+
 @Data
-class RoleToUserForm{
+class RoleToUserForm {
     private String username;
     private String roleName;
 }
+
 @Data
-class RegisterForm{
+class RegisterForm {
     private String username;
     private String password;
     private String email;

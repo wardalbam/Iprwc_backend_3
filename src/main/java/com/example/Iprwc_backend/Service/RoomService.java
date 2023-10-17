@@ -27,14 +27,28 @@ public class RoomService {
     @Autowired
     private ReservationRepository reservationRepository;
 
-    
-
     public List<Room> getAllRooms() {
         return roomRepository.findAll();
     }
 
     public Room getRoomById(Long id) {
         return roomRepository.findById(id).orElse(null);
+    }
+
+    // update Room details
+    public Room updateRoomDetails(RoomDTO roomDto, Long id) {
+
+        Room room = roomRepository.findById(id).orElse(null);
+        if (room != null) {
+            room.setName(roomDto.getName());
+            room.setCapacity(roomDto.getCapacity());
+            room.setDescription(roomDto.getDescription());
+            room.setNotes(roomDto.getNotes());
+            room.setImage(roomDto.getImage());
+
+            roomRepository.save(room);
+        }
+        return room;
     }
 
     public Room addRoom(RoomDTO roomDTO) {
@@ -44,16 +58,11 @@ public class RoomService {
         room.setCapacity(roomDTO.getCapacity());
         room.setDescription(roomDTO.getDescription());
         room.setNotes(roomDTO.getNotes());
-        // room.setRoomType(roomTypeRepository.findById(roomDTO.getRoomTypeId()).orElse(null));
+        room.setImage(roomDTO.getImage());
 
         // Save the new room to the database
         return roomRepository.save(room);
     }
-
-    // public List<Room> getRoomsByType(Long roomTypeId) {
-    //     RoomType roomType = roomTypeRepository.findById(roomTypeId).orElse(null);
-    //     return roomRepository.findByRoomType(roomType);
-    // }
 
     public List<TimeSlotDTO> getAvailableTimeSlotsForRoomType(String roomTypeId) {
         return null;
@@ -68,6 +77,4 @@ public class RoomService {
         roomRepository.deleteById(roomId);
     }
 
-    
 }
-

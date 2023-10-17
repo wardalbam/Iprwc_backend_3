@@ -19,59 +19,35 @@ import com.example.Iprwc_backend.Model.RoomType;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     // List<Reservation> findByRoomRoomType(RoomType roomType);
 
-   
     List<Reservation> findByUserId(Long userId);
 
-    // @Query("SELECT r FROM Room r WHERE r.roomType = :roomType AND NOT EXISTS (" +
-    //     "SELECT 1 FROM Reservation res WHERE res.room = r AND NOT (res.startTime >= :endTime OR res.endTime <= :startTime))")
-    // List<Room> findRoomsByRoomTypeAndNotReserved(@Param("roomType") RoomType roomType, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
-
-
-    // default Room findFirstByRoomTypeAndNotReserved(RoomType roomType, LocalDateTime startTime, LocalDateTime endTime) {
-    //     List<Room> rooms = findRoomsByRoomTypeAndNotReserved(roomType, startTime, endTime);
-    //     return rooms.isEmpty() ? null : rooms.get(0);
-    // }
-
-    // get available room by roomId 
+    // get available room by roomId
     @Query("SELECT r FROM Room r WHERE r.id = :roomId AND NOT EXISTS (" +
-        "SELECT 1 FROM Reservation res WHERE res.room = r AND NOT (res.startTime >= :endTime OR res.endTime <= :startTime))")
-    Room findRoomByRoomIdAndNotReserved(@Param("roomId") Long roomId, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
-
+            "SELECT 1 FROM Reservation res WHERE res.room = r AND NOT (res.startTime >= :endTime OR res.endTime <= :startTime))")
+    Room findRoomByRoomIdAndNotReserved(@Param("roomId") Long roomId, @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
 
     @Query("SELECT res FROM Reservation res WHERE res.room.id = :roomId AND res.startTime >= :startTime AND res.endTime <= :endTime")
-List<Reservation> findReservationsByRoomAndDate(
-    @Param("roomId") Long roomId,
-    @Param("startTime") LocalDateTime startTime,
-    @Param("endTime") LocalDateTime endTime
-);
-
+    List<Reservation> findReservationsByRoomAndDate(
+            @Param("roomId") Long roomId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
 
     // findif reservation exists ByReservationDateAndRoomId
     @Query("SELECT COUNT(res) = 0 " +
-    "FROM Reservation res " +
-    "WHERE res.room.id = :roomId " +
-    "AND NOT (res.startTime = :endTime OR res.endTime = :startTime)")
+            "FROM Reservation res " +
+            "WHERE res.room.id = :roomId " +
+            "AND NOT (res.startTime = :endTime OR res.endTime = :startTime)")
     boolean findByRoomIdAndNotReserved(@Param("roomId") Long roomId,
-                                        @Param("startTime") LocalDateTime startTime,
-                                        @Param("endTime") LocalDateTime endTime);
-
-    
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
 
     // findByStartTimeAfter
     List<Reservation> findByStartTimeAfter(LocalDateTime startTime);
 
-
-
     // findByRoomId
     List<Reservation> findByRoomId(Long roomId);
 
-
-
-
-
-
-
-
+    List<Reservation> findByStartTimeBetween(LocalDateTime weekStartDate, LocalDateTime weekEndDate);
 
 }
-

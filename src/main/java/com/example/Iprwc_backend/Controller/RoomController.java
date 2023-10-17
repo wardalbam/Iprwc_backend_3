@@ -6,14 +6,17 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,12 +31,11 @@ import com.example.Iprwc_backend.Service.RoomService;
 import com.example.Iprwc_backend.Service.UserService;
 import com.example.Iprwc_backend.helper.RoomConfig;
 
-@CrossOrigin(origins = {"http://localhost:4200", "https://loquacious-baklava-ac398e.netlify.app/"})
+@CrossOrigin(origins = { "http://localhost:4200/", "https://loquacious-baklava-ac398e.netlify.app/" })
 
 @RestController
 @RequestMapping("/api/rooms")
 public class RoomController {
-
 
     @Autowired
     private RoomService roomService;
@@ -56,37 +58,50 @@ public class RoomController {
         return roomService.getAllRooms();
     }
 
-
     // delete room by id check if admin!
     @GetMapping("/delete/{id}")
     public ResponseEntity<?> deleteRoom(@PathVariable("id") Long id,
-                                         HttpServletRequest request
-    ){
+            HttpServletRequest request) {
         // check if admin
-        if( !userService.checkIfUserHasAdminRole(request) ){
-            return new ResponseEntity<>("Only admin can delete rooms!",HttpStatus.FORBIDDEN);
+        if (!userService.checkIfUserHasAdminRole(request)) {
+            return new ResponseEntity<>("Only admin can delete rooms!", HttpStatus.FORBIDDEN);
         }
-        try{
+        try {
             roomService.removeRoomById(id);
             return new ResponseEntity<>(HttpStatus.OK);
-        }catch(Exception e){
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
-
-
-
-
-
     @GetMapping("/{id}")
     public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
         Room room = roomService.getRoomById(id);
         if (room != null) {
-            return ResponseEntity.ok(room);
+            // return room
+            return new ResponseEntity<>(room, HttpStatus.OK);
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    // update room
+    @PostMapping(value = "/update/{roomId}", produces = "text/plain")
+    public ResponseEntity<String> updateRoom(
+            @RequestBody RoomDTO room,
+            @PathVariable Long roomId,
+            HttpServletRequest request) {
+        // check if admin
+        if (!userService.checkIfUserHasAdminRole(request)) {
+            System.out.println("test not allowed");
+            return new ResponseEntity<>("Only admin can delete rooms!", HttpStatus.FORBIDDEN);
+        }
+        try {
+            roomService.updateRoomDetails(room, roomId);
+            return new ResponseEntity<>("Room updated successfully!", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -94,53 +109,34 @@ public class RoomController {
     // add room
     @PostMapping("/create")
     public ResponseEntity<?> addRoom(@RequestBody RoomDTO roomDTO, HttpServletRequest request) {
-
-        System.out.println("<<<<<<<<<<<<<<<<<<<<<");
-        System.out.println("roomDTO: " + roomDTO);
-        
-
         // check if admin
-        if( !userService.checkIfUserHasAdminRole(request) ){
-            return new ResponseEntity<>("Only admin can delete rooms!",HttpStatus.FORBIDDEN);
+        if (!userService.checkIfUserHasAdminRole(request)) {
+            return new ResponseEntity<>("Only admin can delete rooms!", HttpStatus.FORBIDDEN);
         }
-        try{
+        try {
             Room room = roomService.addRoom(roomDTO);
-            return new ResponseEntity<>(room,HttpStatus.CREATED);
-        }catch(Exception e){
+            return new ResponseEntity<>(room, HttpStatus.OK);
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
 
-    // // get rooms by type
-    // @GetMapping("/type/{id}")
-    // public ResponseEntity<List<Room>> getRoomsByType(@PathVariable Long id) {
-    //     List<Room> rooms = roomService.getRoomsByType(id);
-    //     if (rooms != null) {
-    //         return ResponseEntity.ok(rooms);
-    //     } else {
-    //         return ResponseEntity.notFound().build();
-    //     }
-    // }
-
-
     @GetMapping("/available-time-slots")
     public ResponseEntity<ReservationAvalabilityResponseDTO> getReservationAvailability(
             @RequestParam String roomId,
-             @RequestParam String date) {
-        
-                
-                System.out.println("date: " + date); // date: 2023-08-25
-                System.out.println("roomId: " + roomId);
-                // convert the String date to a LocalDate object
-                LocalDate localDate = LocalDate.parse(date);
-                System.out.println("localDate: " + localDate); // localDate: 2023-08-25
+            @RequestParam String date) {
 
-         List<TimeSlotDTO> unAvailableTimeSlotDTOs = reservationService.getUnavailableTimeSlotsByDate(
-            localDate,
-            Long.parseLong(roomId)
-        );
-        
+        System.out.println("date: " + date); // date: 2023-08-25
+        System.out.println("roomId: " + roomId);
+        // convert the String date to a LocalDate object
+        LocalDate localDate = LocalDate.parse(date);
+        System.out.println("localDate: " + localDate); // localDate: 2023-08-25
+
+        List<TimeSlotDTO> unAvailableTimeSlotDTOs = reservationService.getUnavailableTimeSlotsByDate(
+                localDate,
+                Long.parseLong(roomId));
+
         // Create ReservationAvalabilityResponseDTO
         // Get the opening and closing times from the room configuration
         LocalTime openingTime = roomConfiguration.getOpeningTimeForDay(localDate);
@@ -151,9 +147,8 @@ public class RoomController {
         responseDTO.setOpeningTime(openingTime);
         responseDTO.setClosingTime(closingTime);
         responseDTO.setUnavailableTimeSlots(unAvailableTimeSlotDTOs);
-        
+
         return ResponseEntity.ok(responseDTO);
     }
-    
-}
 
+}

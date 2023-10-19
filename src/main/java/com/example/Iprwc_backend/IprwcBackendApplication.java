@@ -4,8 +4,8 @@ import com.example.Iprwc_backend.DAO.ReservationRepository;
 import com.example.Iprwc_backend.DAO.RoomRepository;
 import com.example.Iprwc_backend.DAO.RoomTypeRepository;
 import com.example.Iprwc_backend.DAO.UserRepo;
+import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserService;
-
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -27,44 +27,39 @@ public class IprwcBackendApplication {
 
 	@Bean
 	CommandLineRunner run(
-		UserService userService,
-		PasswordEncoder passwordEncoder,
-		ReservationRepository reservationRepository,
-		RoomRepository roomRepository,
-		RoomTypeRepository roomTypeRepository,
-		UserRepo userRepository){
+			UserService userService,
+			PasswordEncoder passwordEncoder,
+			ReservationRepository reservationRepository,
+			RoomRepository roomRepository,
+			RoomTypeRepository roomTypeRepository,
+			UserRepo userRepository) {
 		return args -> {
 
 			// userService.saveRole(new Role("ROLE_ADMIN"));
 
 			// check if user already exists
-			// if(userRepository.findByUsername("Ward") != null){
-			// 		System.out.println("Admin is already created");
-			// } else {
-			// 	userService.saveUser(new User(null, 
-			// 	"Ward", 
-			// 	"1234", 
-			// 	"wardalbam32@gmail.com",
-			// 	new ArrayList<>()));
-			// 	userService.addRoleToUser("ward", "ROLE_ADMIN");
+			if (userRepository.findByUsername("Ward") != null) {
+				System.out.println("Admin is already created");
+			} else {
+				userService.saveUser(new User(null,
+						"Ward",
+						"1234",
+						"wardalbam32@gmail.com",
+						new ArrayList<>()));
+				userService.addRoleToUser("Ward", "ROLE_ADMIN");
 
-			// }
+			}
 			// userService.saveRole(new Role("ROLE_USER"));
 			// userService.saveRole(new Role("ROLE_MANAGER"));
-			
 
-		
-			
-
-			// userService.saveUser(new User(null, "khaledjad", "1234", "", new ArrayList<>()));
+			// userService.saveUser(new User(null, "khaledjad", "1234", "", new
+			// ArrayList<>()));
 			// userService.saveUser(new User(null, "ibra", "1234", "", new ArrayList<>()));
-
 
 			// userService.addRoleToUser("khaledjad", "ROLE_MANAGER");
 			// userService.addRoleToUser("ibra", "ROLE_USER");
 
-
-			// // create room type 
+			// // create room type
 			// RoomType roomType1 = new RoomType();
 			// roomType1.setType(RoomTypeOptions.vergadering_ruimte_open);
 			// roomType1.setCapacity(10);
@@ -86,14 +81,12 @@ public class IprwcBackendApplication {
 			// room2.setNotes("Deze ruimte is voorzien van een beamer");
 			// roomRepository.save(room2);
 
-
 			// // create reaservation for room 2
 			// Reservation reservation1 = new Reservation();
 			// reservation1.setRoom(room1);
 
-			
 			// // create new LocalDateTime
-			
+
 			// String startTimeString = "2023-08-07T10:00:00";
 			// LocalDateTime startTime = LocalDateTime.parse(startTimeString);
 			// reservation1.setStartTime(startTime);
@@ -103,11 +96,10 @@ public class IprwcBackendApplication {
 			// reservation1.setEndTime(endTime);
 
 			// reservation1.setUser(
-			// 	userRepository.findByUsername("ward")
+			// userRepository.findByUsername("ward")
 			// );
 			// // save reservation
 			// reservationRepository.save(reservation1);
-
 
 			// // create reaservation for room 2
 			// Reservation reservation2 = new Reservation();
@@ -122,12 +114,10 @@ public class IprwcBackendApplication {
 			// reservation2.setEndTime(endTime2);
 
 			// reservation2.setUser(
-			// 	userRepository.findByUsername("ward")
+			// userRepository.findByUsername("ward")
 			// );
 			// // save reservation
 			// reservationRepository.save(reservation2);
-
-
 
 			// Reservation reservation3 = new Reservation();
 			// reservation3.setRoom(room2);
@@ -140,11 +130,10 @@ public class IprwcBackendApplication {
 			// reservation3.setEndTime(endTime3);
 
 			// reservation3.setUser(
-			// 	userRepository.findByUsername("ward")
+			// userRepository.findByUsername("ward")
 			// );
 			// // save reservation
 			// reservationRepository.save(reservation3);
-
 
 			// // add reservation4 start 2023-08-04T15:00:00 till 2023-08-04T16:00:00
 			// Reservation reservation4 = new Reservation();
@@ -158,13 +147,13 @@ public class IprwcBackendApplication {
 			// reservation4.setEndTime(endTime4);
 
 			// reservation4.setUser(
-			// 	userRepository.findByUsername("ward")
+			// userRepository.findByUsername("ward")
 			// );
 
 			// // save reservation
 			// reservationRepository.save(reservation4);
 
-			// //  add roomtype, room and reservation for user khaledjad
+			// // add roomtype, room and reservation for user khaledjad
 			// // create room type
 			// RoomType roomType2 = new RoomType();
 			// roomType2.setType(RoomTypeOptions.vergadering_ruimte_dicht);
@@ -190,24 +179,17 @@ public class IprwcBackendApplication {
 			// reservation5.setEndTime(endTime5);
 
 			// reservation5.setUser(
-			// 	userRepository.findByUsername("khaledjad")
+			// userRepository.findByUsername("khaledjad")
 			// );
 			// reservationRepository.save(reservation5);
 
-
-			
 		};
-		
+
 	}
 
-	
-
 	@Bean
-	PasswordEncoder passwordEncoder(){
+	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
-	
-	
 }
-

@@ -4,6 +4,7 @@ import com.example.Iprwc_backend.DAO.ReservationRepository;
 import com.example.Iprwc_backend.DAO.RoomRepository;
 import com.example.Iprwc_backend.DAO.RoomTypeRepository;
 import com.example.Iprwc_backend.DAO.UserRepo;
+import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
 import com.example.Iprwc_backend.Service.UserService;
 
@@ -38,17 +39,20 @@ public class IprwcBackendApplication {
 			// userService.saveRole(new Role("ROLE_ADMIN"));
 
 			// check if user already exists
-			if (userRepository.findByUsername("Ward") != null) {
-				System.out.println("Admin is already created");
-			} else {
-				userService.saveUser(new User(null,
-						"Ward",
-						"1234",
-						"wardalbam32@gmail.com",
-						new ArrayList<>()));
-				userService.addRoleToUser("Ward", "ROLE_ADMIN");
+			// if (userRepository.findByUsername("Ward") != null) {
+			// System.out.println("Admin is already created");
+			// } else {
+			userService.saveRole(new Role("ROLE_ADMIN"));
+			userService.saveRole(new Role("ROLE_USER"));
+			userService.saveRole(new Role("ROLE_MANAGER"));
+			userService.saveUser(new User(null,
+					"Ward",
+					"1234",
+					"wardalbam32@gmail.com",
+					new ArrayList<>()));
+			userService.addRoleToUser("Ward", "ROLE_ADMIN");
 
-			}
+			// }
 			// userService.saveRole(new Role("ROLE_USER"));
 			// userService.saveRole(new Role("ROLE_MANAGER"));
 

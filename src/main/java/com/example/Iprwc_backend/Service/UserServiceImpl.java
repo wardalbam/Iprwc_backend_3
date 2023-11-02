@@ -19,10 +19,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.Column;
+import javax.persistence.Lob;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import java.security.Principal;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -185,4 +188,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             e.printStackTrace();
         }
     }
+
+    // getUserById
+    @Override
+    public User getUserById(long id) {
+        return userRepo.getById(id);
+    }
+
+    @Override
+    public void setUserImage(User user, String image) {
+        user.setImage(image);
+        userRepo.save(user);
+    }
+
 }

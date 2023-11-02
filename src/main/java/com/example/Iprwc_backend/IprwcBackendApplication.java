@@ -38,10 +38,8 @@ public class IprwcBackendApplication {
 
 			// userService.saveRole(new Role("ROLE_ADMIN"));
 
-			// check if user already exists
+			// // check if user already exists
 			// if (userRepository.findByUsername("Ward") != null) {
-			// System.out.println("Admin is already created");
-			// } else {
 			userService.saveRole(new Role("ROLE_ADMIN"));
 			userService.saveRole(new Role("ROLE_USER"));
 			userService.saveRole(new Role("ROLE_MANAGER"));
@@ -49,7 +47,9 @@ public class IprwcBackendApplication {
 					"Ward",
 					"1234",
 					"wardalbam32@gmail.com",
-					new ArrayList<>()));
+					new ArrayList<>(), null)
+
+			);
 			userService.addRoleToUser("Ward", "ROLE_ADMIN");
 
 			// }

@@ -1,6 +1,7 @@
 package com.example.Iprwc_backend.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -21,9 +22,13 @@ public class PasswordResetController {
     private UserService userService;
     @Autowired
     private JavaMailSender javaMailSender; // Inject JavaMailSender bean
+    @Value("${BaseUrlFront}")
+    String BaseUrlFront;
+
+    // env variable
 
     // private String frontApi = "https://loquacious-baklava-ac398e.netlify.app/";
-    private String frontApi = "http://localhost:4200/";
+    // private String frontApi = "http://localhost:4200/";
 
     @PostMapping("/request/{email}")
     public ResponseEntity<?> requestPasswordReset(@PathVariable String email) {
@@ -59,9 +64,8 @@ public class PasswordResetController {
             message.setTo(userEmail);
             message.setSubject("Password Reset");
             message.setText("To reset your password, click the following link:\n\n"
-                    + frontApi + "/reset-password?token=" + token);
-
-            // Send the email using JavaMailSender
+                    + BaseUrlFront + "reset-password?token=" + token);
+            
             javaMailSender.send(message);
 
             return true;

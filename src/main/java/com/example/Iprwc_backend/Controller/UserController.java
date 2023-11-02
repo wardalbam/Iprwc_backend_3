@@ -11,11 +11,13 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.security.Principal;
+import java.sql.Blob;
 import java.util.*;
 
 @CrossOrigin(origins = { "http://localhost:4200", "https://loquacious-baklava-ac398e.netlify.app/" })
@@ -61,7 +63,9 @@ public class UserController {
             userDetails = new UserDetailsDTO(
                     user.getId(),
                     user.getUsername(),
-                    user.getEmail());
+                    user.getEmail(),
+                    user.getImage());
+
             return new ResponseEntity<UserDetailsDTO>(userDetails, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -173,6 +177,39 @@ public class UserController {
         }
     }
 
+    // get current user
+    @GetMapping("/users/current")
+    public ResponseEntity<UserDetailsDTO> getCurrentUser(HttpServletRequest request) {
+
+        Principal principal = request.getUserPrincipal();
+        String username = principal.getName();
+        User user = userService.getUser(username);
+        UserDetailsDTO userDetailsDTO = new UserDetailsDTO();
+        userDetailsDTO.setEmail(user.getEmail());
+        userDetailsDTO.setId(user.getId());
+        userDetailsDTO.setFullname(username);
+        userDetailsDTO.setImage(user.getImage());
+        return ResponseEntity.ok(userDetailsDTO);
+
+    }
+
+    // users/upload-image
+    @PostMapping("/{userId}/upload-image")
+    public ResponseEntity<?> uploadImage(
+            @PathVariable("userId") Long userId,
+            @RequestBody UserImageForm imageUser,
+            HttpServletRequest request) {
+
+        // validate the image
+        if (imageUser.getImage().isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userService.getUserById(userId);
+        userService.setUserImage(user, imageUser.getImage());
+        return ResponseEntity.ok().build();
+    }
+
 }
 
 @Data
@@ -186,4 +223,10 @@ class RegisterForm {
     private String username;
     private String password;
     private String email;
+}
+
+@Data
+class UserImageForm {
+    private Long userId;
+    private String image;
 }

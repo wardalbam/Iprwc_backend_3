@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -21,7 +22,6 @@ import java.util.Collection;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-
 public class User {
 
     @Id
@@ -34,6 +34,9 @@ public class User {
     private String email;
     @ManyToMany(fetch = FetchType.EAGER)
     public Collection<Role> roles = new ArrayList<>();
-  
+
+    @Lob
+    @Column(nullable = true)
+    private String image;
 
 }

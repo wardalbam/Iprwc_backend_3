@@ -3,6 +3,7 @@ package com.example.Iprwc_backend.Service;
 import com.example.Iprwc_backend.Model.Role;
 import com.example.Iprwc_backend.Model.User;
 
+import java.sql.Blob;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,4 +34,10 @@ public interface UserService {
 
     // send email with credentials
     void sendCredentials(String email, String username, String password);
+
+    // getUserById
+    User getUserById(long id);
+
+    // setUserImage
+    void setUserImage(User user, String image);
 }

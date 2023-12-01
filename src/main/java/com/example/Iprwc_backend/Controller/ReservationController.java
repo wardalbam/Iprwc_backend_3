@@ -111,7 +111,9 @@ public class ReservationController {
             HttpServletRequest request) {
         Principal principal = request.getUserPrincipal();
         User user = userService.getUser(principal.getName());
-        if (user.getRoles().contains(roleRepo.findByName("ROLE_ADMIN"))) {
+        if (user.getRoles().contains(roleRepo.findByName("ROLE_ADMIN")) ||
+                user.getRoles().contains(roleRepo.findByName("ROLE_USER"))) {
+
             LocalDate weekStartDate = LocalDate.ofYearDay(year, 1) // January 1st of the selected year
                     .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)) // Get the first Monday of the year or the
                                                                               // same day

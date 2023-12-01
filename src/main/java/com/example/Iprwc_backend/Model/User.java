@@ -2,6 +2,7 @@ package com.example.Iprwc_backend.Model;
 
 import javax.persistence.*;
 
+import org.hibernate.annotations.OnDelete;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.lang.NonNull;
 
@@ -32,7 +33,7 @@ public class User {
     private String password;
     @NonNull
     private String email;
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     public Collection<Role> roles = new ArrayList<>();
 
     @Lob

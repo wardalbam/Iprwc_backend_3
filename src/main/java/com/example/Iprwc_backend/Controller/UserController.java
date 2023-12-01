@@ -193,6 +193,13 @@ public class UserController {
 
     }
 
+    // logout
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        request.getSession().invalidate();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     // users/upload-image
     @PostMapping("/{userId}/upload-image")
     public ResponseEntity<?> uploadImage(

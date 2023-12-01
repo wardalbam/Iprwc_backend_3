@@ -39,20 +39,20 @@ public class IprwcBackendApplication {
 			// userService.saveRole(new Role("ROLE_ADMIN"));
 
 			// // check if user already exists
-			// if (userRepository.findByUsername("Ward") != null) {
-			userService.saveRole(new Role("ROLE_ADMIN"));
-			userService.saveRole(new Role("ROLE_USER"));
-			userService.saveRole(new Role("ROLE_MANAGER"));
-			userService.saveUser(new User(null,
-					"Ward",
-					"1234",
-					"wardalbam32@gmail.com",
-					new ArrayList<>(), null)
+			if (userRepository.findByUsername("Ward") == null) {
+				userService.saveRole(new Role("ROLE_ADMIN"));
+				userService.saveRole(new Role("ROLE_USER"));
+				userService.saveRole(new Role("ROLE_MANAGER"));
+				userService.saveUser(new User(null,
+						"Ward",
+						"1234",
+						"wardalbam32@gmail.com",
+						new ArrayList<>(), null)
 
-			);
-			userService.addRoleToUser("Ward", "ROLE_ADMIN");
+				);
+				userService.addRoleToUser("Ward", "ROLE_ADMIN");
 
-			// }
+			}
 			// userService.saveRole(new Role("ROLE_USER"));
 			// userService.saveRole(new Role("ROLE_MANAGER"));
 
